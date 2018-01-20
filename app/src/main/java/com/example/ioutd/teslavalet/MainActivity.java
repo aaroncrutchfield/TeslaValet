@@ -30,7 +30,37 @@ public class MainActivity extends AppCompatActivity {
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null)actionBar.setTitle("A2DP watcher");
+        
+         AndroidNetworking.initialize(getApplicationContext());
 
+        // Then set the JacksonParserFactory like below
+        AndroidNetworking.setParserFactory(new JacksonParserFactory());
+        //RESTful API
+
+        Button button=findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            AndroidNetworking.post("http://hackathon.intrepidcs.com/api/data")
+                    .addHeaders("Authorization", "Bearer c367b9df3ed900f462b2fc8dea1b73c26d5bd798d0fd732019133f8cb9ee7671")
+                    .addBodyParameter("command", "trunk")
+                    .setTag("trunk_test")
+                    .setPriority(Priority.MEDIUM)
+                    .build()
+                    .getAsJSONObject(new JSONObjectRequestListener() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            // do anything with response
+                            Log.d("Trunk_test", "response " + response);
+                        }
+                        @Override
+                        public void onError(ANError error) {
+                            // handle error
+                            Log.d("Trunk_test", "response_error " + error.getErrorBody());
+                        }
+                    });
+            }
+        });
         BluetoothBroadcastReceiver receiver = new BluetoothBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
 
