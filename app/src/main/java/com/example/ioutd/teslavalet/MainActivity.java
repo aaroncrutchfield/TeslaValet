@@ -1,5 +1,6 @@
 package com.example.ioutd.teslavalet;
 
+import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
@@ -28,14 +29,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setTitle("this is mine");
+        if (actionBar != null)actionBar.setTitle("A2DP watcher");
 
         BluetoothBroadcastReceiver receiver = new BluetoothBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
 
-        filter.
-        filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
-        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+        filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+//        filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
+//        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
 
         registerReceiver(receiver, filter);
 
