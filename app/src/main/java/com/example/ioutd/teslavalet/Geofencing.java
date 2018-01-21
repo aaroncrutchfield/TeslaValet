@@ -1,27 +1,41 @@
 package com.example.ioutd.teslavalet;
 
-import android.app.PendingIntent;
-import android.content.Context;
+import android.app.IntentService;
+import android.content.Intent;
+import android.support.annotation.Nullable;
+import android.util.Log;
 
-import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingEvent;
 
 /**
  * Created by ioutd on 1/20/2018.
  */
 
-public class Geofencing {
-    private Context context;
-    private GoogleApiClient apiClient;
-    private PendingIntent geofencePendingIntent;
-    private
-    // TODO: 1/20/2018 Create a geofence using the latlng for the center point and a predefined radius
+public class Geofencing extends IntentService{
 
-    Geofencing(Context context, GoogleApiClient apiClient) {
-        this.context = context;
-        this.apiClient = apiClient;
+    private static final String TAG = Geofencing.class.getSimpleName();
+
+    public Geofencing(String name) {
+        super(name);
     }
-    // Create a geofence request object
-    // PendingIntent will define what to do when the geofence is triggered
-        //Use a broadcast receiver and in the onReceive method do the logic
 
+    @Override
+    protected void onHandleIntent(@Nullable Intent intent) {
+        GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
+        if (geofencingEvent.hasError()) {
+            int errorCode = geofencingEvent.getErrorCode();
+            Log.d(TAG, "onHandleIntent: errorCode= " + errorCode);
+
+            // Get the transition type
+            int geofenceTransition = geofencingEvent.getGeofenceTransition();
+
+            // Make sure the transition is the one desired
+            if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
+                // TODO: 1/21/2018 send an HTTP REQUEST to open doors/trunk
+            }
+        } else {
+
+        }
+    }
 }
