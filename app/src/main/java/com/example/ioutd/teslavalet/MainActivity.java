@@ -1,19 +1,17 @@
 package com.example.ioutd.teslavalet;
 
-import android.bluetooth.BluetoothA2dp;
-import android.bluetooth.BluetoothAdapter;
 import android.app.PendingIntent;
-import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothA2dp;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -22,27 +20,30 @@ import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.common.Priority;
 import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingClient;
+import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.location.places.PlaceDetectionClient;
-import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.jacksonandroidnetworking.JacksonParserFactory;
 
 import org.json.JSONObject;
 
+import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements BluetoothDisconnectionListener,
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
+public class MainActivity extends AppCompatActivity implements BluetoothDisconnectionListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int PERMISSIONS_REQUEST_FINE_LOCATION = 1;
+    public static final int HOURS_24 = 60000 * 60 * 24;
 
     private GeoDataClient geoDataClient;
     private PlaceDetectionClient placesDetectionClient;
@@ -50,6 +51,9 @@ public class MainActivity extends AppCompatActivity implements BluetoothDisconne
     private boolean mLocationPermissionGranted;
     private LatLng coordinates;
 
+    private List geofenceList;
+    private GeofencingClient geofencingClient;
+    private PendingIntent geofencePendingIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,44 +61,49 @@ public class MainActivity extends AppCompatActivity implements BluetoothDisconne
         setContentView(R.layout.activity_main);
 
         ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null)actionBar.setTitle("A2DP watcher");
-        
-         AndroidNetworking.initialize(getApplicationContext());
+        if (actionBar != null) actionBar.setTitle("A2DP watcher");
+
+        AndroidNetworking.initialize(getApplicationContext());
 
         // Then set the JacksonParserFactory like below
         AndroidNetworking.setParserFactory(new JacksonParserFactory());
-        //RESTful API
 
-        Button button=findViewById(R.id.button);
+        Button button = findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            AndroidNetworking.post("http://hackathon.intrepidcs.com/api/data")
-                    .addHeaders("Authorization", "Bearer c367b9df3ed900f462b2fc8dea1b73c26d5bd798d0fd732019133f8cb9ee7671")
-                    .addBodyParameter("command", "trunk")
-                    .setTag("trunk_test")
-                    .setPriority(Priority.MEDIUM)
-                    .build()
-                    .getAsJSONObject(new JSONObjectRequestListener() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            // do anything with response
-                            Log.d("Trunk_test", "response " + response);
-                        }
-                        @Override
-                        public void onError(ANError error) {
-                            // handle error
-                            Log.d("Trunk_test", "response_error " + error.getErrorBody());
-                        }
-                    });
+            @Override
+            public void onClick(View view) {
+                openTrunk();
             }
         });
-        BluetoothBroadcastReceiver receiver = new BluetoothBroadcastReceiver(this);
-        IntentFilter filter = new IntentFilter();
+        requestLocationPermissions();
 
-        filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+        createBroadcastReceiver();
 
-        registerReceiver(receiver, filter);
+        createGeofence();
+        addGeofences();
+    }
+
+    private void openTrunk() {
+        //RESTful API
+        AndroidNetworking.post("http://hackathon.intrepidcs.com/api/data")
+                .addHeaders("Authorization", "Bearer c367b9df3ed900f462b2fc8dea1b73c26d5bd798d0fd732019133f8cb9ee7671")
+                .addBodyParameter("command", "trunk")
+                .setTag("trunk_test")
+                .setPriority(Priority.MEDIUM)
+                .build()
+                .getAsJSONObject(new JSONObjectRequestListener() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // do anything with response
+                        Log.d("Trunk_test", "response " + response);
+                    }
+
+                    @Override
+                    public void onError(ANError error) {
+                        // handle error
+                        Log.d("Trunk_test", "response_error " + error.getErrorBody());
+                    }
+                });
     }
 
     private void requestLocationPermissions() {
@@ -107,6 +116,15 @@ public class MainActivity extends AppCompatActivity implements BluetoothDisconne
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_FINE_LOCATION);
         }
+    }
+
+    private void createBroadcastReceiver() {
+        BluetoothBroadcastReceiver receiver = new BluetoothBroadcastReceiver(this);
+        IntentFilter filter = new IntentFilter();
+
+        filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+
+        registerReceiver(receiver, filter);
     }
 
     private void getCurrentLocation() {
@@ -126,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothDisconne
                     }
 
                 });
-            } catch (SecurityException e){
+            } catch (SecurityException e) {
                 throw new UnsupportedOperationException("Location permission have not been granted");
             }
         }
@@ -144,29 +162,86 @@ public class MainActivity extends AppCompatActivity implements BluetoothDisconne
         }
     }
 
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        Log.i(TAG, "API Client Connection Successful!");
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.e(TAG, "API Client Connection Failed!");
-    }
-
     @Override
     public void onBluetoothDisconnect() {
         getCurrentLocation();
     }
+
+    // Use the builder to create a geofence
+    public void createGeofence() {
+        geofencingClient = LocationServices.getGeofencingClient(this);
+
+        geofenceList.add(new Geofence.Builder()
+                .setRequestId("parkingSpot")
+                .setCircularRegion(
+                        coordinates.latitude,
+                        coordinates.longitude,
+                        5
+                )
+                .setExpirationDuration(HOURS_24)
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+                .build()
+        );
+    }
+
+    // Specify the geofences to monitor and set the triggers
+    private GeofencingRequest getGeofencingRequest() {
+        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_DWELL);
+        builder.addGeofences(geofenceList);
+        return builder.build();
+    }
+
+    // Define an Intent for the geofence transitions
+    private PendingIntent getGeofencePendingIntent() {
+        if (geofencePendingIntent != null) {
+            return geofencePendingIntent;
+        }
+
+        Intent intent = new Intent(this, Geofencing.class);
+        // FLAG_UPDATE_CURRENT ensures we get the same pending intent when callind add or remove geofences
+        geofencePendingIntent = PendingIntent.getService(this, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        return geofencePendingIntent;
+    }
+
+    private void addGeofences() {
+        if (mLocationPermissionGranted) {
+            try {
+                geofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent())
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                // Geofences have been added
+                            }
+                        })
+                        .addOnFailureListener(this, new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+
+                            }
+                        });
+            } catch (SecurityException e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void removeGeofences() {
+        geofencingClient.removeGeofences(getGeofencePendingIntent())
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        // Geofences have been removed
+                    }
+                })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Failed to add Geofences
+                    }
+                });
+
+    }
+
 }
