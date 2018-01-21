@@ -10,8 +10,8 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -29,7 +29,11 @@ import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.location.places.PlaceDetectionClient;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -41,7 +45,8 @@ import org.json.JSONObject;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity implements BluetoothConnectionListener {
+public class MainActivity extends FragmentActivity implements BluetoothConnectionListener,
+        OnMapReadyCallback{
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int PERMISSIONS_REQUEST_FINE_LOCATION = 1;
@@ -134,6 +139,10 @@ public class MainActivity extends AppCompatActivity implements BluetoothConnecti
         left.setChecked(getSharedPreferences(getString(R.string.left_pref), Context.MODE_PRIVATE).getBoolean(getString(R.string.left_pref), false));
         right.setChecked(getSharedPreferences(getString(R.string.right_pref), Context.MODE_PRIVATE).getBoolean(getString(R.string.right_pref), false));
 
+        // Add the map fragment
+        MapFragment mapFragment = (MapFragment) getFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
     }
 
     public void openDoors() {
@@ -355,4 +364,10 @@ public class MainActivity extends AppCompatActivity implements BluetoothConnecti
 
     }
 
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        googleMap.addMarker(new MarkerOptions()
+                .position(coordinates)
+                .title("Parking Location"));
+    }
 }
