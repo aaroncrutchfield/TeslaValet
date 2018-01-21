@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -12,9 +11,7 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.Toast;
 
-import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by ioutd on 1/20/2018.
@@ -26,10 +23,12 @@ public class BluetoothBroadcastReceiver extends BroadcastReceiver {
     private BluetoothA2dp bluetoothA2dp;
     private List<BluetoothDevice> bluetoothDeviceList;
 
-    BluetoothDisconnectionListener bluetoothDisconnectionListener;
+    BluetoothConnectionListener bluetoothConnectionListener;
 
-    BluetoothBroadcastReceiver(BluetoothDisconnectionListener disconnectionListener) {
-        bluetoothDisconnectionListener = disconnectionListener;
+    public BluetoothBroadcastReceiver(){}
+
+    BluetoothBroadcastReceiver(BluetoothConnectionListener disconnectionListener) {
+        bluetoothConnectionListener = disconnectionListener;
     }
 
     @Override
@@ -85,6 +84,8 @@ public class BluetoothBroadcastReceiver extends BroadcastReceiver {
             Log.d(TAG, "onReceive() returned: " + action);
             Log.d(TAG, "onReceive() DataString: " + bleUUID);
 
+            bluetoothConnectionListener.onBluetoothConnect();
+
             // TODO: 1/20/2018 check if the device is the tesla, if so, save the mac address
         }
 
@@ -93,7 +94,7 @@ public class BluetoothBroadcastReceiver extends BroadcastReceiver {
             Log.d(TAG, "onReceive() returned: " + action);
 
             // TODO: 1/20/2018 if the mac address matches the tesla, get the current GPS location
-            bluetoothDisconnectionListener.onBluetoothDisconnect();
+            bluetoothConnectionListener.onBluetoothDisconnect();
 
             // TODO: 1/20/2018 use the GPS location to set the Geofence
             // TODO: 1/20/2018 if the Geofence is entered, check if the current location is a grocery store

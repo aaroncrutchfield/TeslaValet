@@ -22,6 +22,8 @@ public class Geofencing extends IntentService{
 
     private static final String TAG = Geofencing.class.getSimpleName();
 
+    public Geofencing(){super(TAG);}
+
     public Geofencing(String name) {
         super(name);
     }

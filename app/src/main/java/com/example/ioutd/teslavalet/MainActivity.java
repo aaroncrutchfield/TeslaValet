@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -39,7 +38,7 @@ import org.json.JSONObject;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity implements BluetoothDisconnectionListener {
+public class MainActivity extends AppCompatActivity implements BluetoothConnectionListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int PERMISSIONS_REQUEST_FINE_LOCATION = 1;
@@ -54,14 +53,12 @@ public class MainActivity extends AppCompatActivity implements BluetoothDisconne
     private List geofenceList;
     private GeofencingClient geofencingClient;
     private PendingIntent geofencePendingIntent;
+    private int radius = 5;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) actionBar.setTitle("A2DP watcher");
 
         AndroidNetworking.initialize(getApplicationContext());
 
@@ -78,9 +75,6 @@ public class MainActivity extends AppCompatActivity implements BluetoothDisconne
         requestLocationPermissions();
 
         createBroadcastReceiver();
-
-        createGeofence();
-        addGeofences();
     }
 
     private void openTrunk() {
@@ -165,6 +159,13 @@ public class MainActivity extends AppCompatActivity implements BluetoothDisconne
     @Override
     public void onBluetoothDisconnect() {
         getCurrentLocation();
+        createGeofence();
+        addGeofences();
+    }
+
+    @Override
+    public void onBluetoothConnect() {
+        removeGeofences();
     }
 
     // Use the builder to create a geofence
@@ -176,7 +177,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothDisconne
                 .setCircularRegion(
                         coordinates.latitude,
                         coordinates.longitude,
-                        5
+                        radius
                 )
                 .setExpirationDuration(HOURS_24)
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
