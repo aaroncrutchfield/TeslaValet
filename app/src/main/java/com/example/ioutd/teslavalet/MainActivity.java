@@ -5,7 +5,6 @@ import android.bluetooth.BluetoothA2dp;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -104,11 +103,11 @@ public class MainActivity extends AppCompatActivity implements BluetoothConnecti
             }
         });
 
-        Switch passanger = findViewById(R.id.passangerSwitch);
-        passanger.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        Switch passenger = findViewById(R.id.passengerSwitch);
+        passenger.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                getSharedPreferences(getString(R.string.passanger_pref), Context.MODE_PRIVATE).edit().putBoolean(getString(R.string.passanger_pref), b).apply();
+                getSharedPreferences(getString(R.string.passenger_pref), Context.MODE_PRIVATE).edit().putBoolean(getString(R.string.passenger_pref), b).apply();
             }
         });
 
@@ -131,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothConnecti
         trunk.setChecked(getSharedPreferences(getString(R.string.trunk_pref), Context.MODE_PRIVATE).getBoolean(getString(R.string.trunk_pref), false));
         frunk.setChecked(getSharedPreferences(getString(R.string.frunk_pref), Context.MODE_PRIVATE).getBoolean(getString(R.string.frunk_pref), false));
         driver.setChecked(getSharedPreferences(getString(R.string.driver_pref), Context.MODE_PRIVATE).getBoolean(getString(R.string.driver_pref), true));
-        passanger.setChecked(getSharedPreferences(getString(R.string.passanger_pref), Context.MODE_PRIVATE).getBoolean(getString(R.string.passanger_pref), false));
+        passenger.setChecked(getSharedPreferences(getString(R.string.passenger_pref), Context.MODE_PRIVATE).getBoolean(getString(R.string.passenger_pref), false));
         left.setChecked(getSharedPreferences(getString(R.string.left_pref), Context.MODE_PRIVATE).getBoolean(getString(R.string.left_pref), false));
         right.setChecked(getSharedPreferences(getString(R.string.right_pref), Context.MODE_PRIVATE).getBoolean(getString(R.string.right_pref), false));
 
@@ -170,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothConnecti
             commandDriver = "command";
             driver = "openFrontDriverDoor";
         }
-        if(getSharedPreferences(getString(R.string.passanger_pref), Context.MODE_PRIVATE).getBoolean(getString(R.string.passanger_pref), false)){
+        if(getSharedPreferences(getString(R.string.passenger_pref), Context.MODE_PRIVATE).getBoolean(getString(R.string.passenger_pref), false)){
             commandPassenger = "command";
             passenger = "openFrontPassengerDoor";
         }
