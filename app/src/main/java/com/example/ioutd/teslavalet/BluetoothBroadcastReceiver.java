@@ -25,6 +25,12 @@ public class BluetoothBroadcastReceiver extends BroadcastReceiver {
     private BluetoothA2dp bluetoothA2dp;
     private List<BluetoothDevice> bluetoothDeviceList;
 
+    BluetoothDisconnectionListener bluetoothDisconnectionListener;
+
+    BluetoothBroadcastReceiver(BluetoothDisconnectionListener disconnectionListener) {
+        bluetoothDisconnectionListener = disconnectionListener;
+    }
+
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
@@ -49,7 +55,6 @@ public class BluetoothBroadcastReceiver extends BroadcastReceiver {
                     Log.d(TAG, "onServiceConnected: bluetooth=" + bluetoothProfile);
                     bluetoothA2dp = (BluetoothA2dp) bluetoothProfile;
                     bluetoothDeviceList = bluetoothProfile.getConnectedDevices();
-
                 }
 
             }
@@ -83,6 +88,7 @@ public class BluetoothBroadcastReceiver extends BroadcastReceiver {
 //            Log.d(TAG, "onReceive: devices= " + device.getName());
 //            Log.d(TAG, "onReceive: devices= " + device.getName());
             // TODO: 1/20/2018 if the mac address matches the tesla, get the current GPS location
+            bluetoothDisconnectionListener.onBluetoothDisconnect();
 
             // TODO: 1/20/2018 use the GPS location to set the Geofence
             // TODO: 1/20/2018 if the Geofence is entered, check if the current location is a grocery store
