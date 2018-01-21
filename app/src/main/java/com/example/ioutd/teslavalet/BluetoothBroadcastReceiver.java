@@ -62,22 +62,14 @@ public class BluetoothBroadcastReceiver extends BroadcastReceiver {
                     List<BluetoothDevice> bluetoothDeviceList = a2dpService.getConnectedDevices();
 
                     Log.d(TAG, "onServiceConnected: List= " + bluetoothDeviceList);
-
-                    Toast.makeText(context, "Device Connected", Toast.LENGTH_LONG).show();
-                    bluetoothConnectionListener.onBluetoothConnect();
                 }
-
-
             }
-
 
             @Override
             public void onServiceDisconnected(int i) {
                 if (i == BluetoothProfile.A2DP) {
                     bluetoothA2dp = null;
 
-                    bluetoothConnectionListener.onBluetoothDisconnect();
-                    Toast.makeText(context, "Device Disconnected", Toast.LENGTH_LONG).show();
                 }
             }
         };
@@ -85,24 +77,20 @@ public class BluetoothBroadcastReceiver extends BroadcastReceiver {
 
         bluetoothAdapter.getProfileProxy(context, serviceListener, BluetoothProfile.A2DP);
 
-        if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)){
-//
-//            String bleUUID = intent.getStringExtra(BluetoothDevice.EXTRA_NAME);
-//
-//            Toast.makeText(context, "Device Connected", Toast.LENGTH_LONG).show();
-//            bluetoothConnectionListener.onBluetoothConnect();
-//            Log.d(TAG, "onReceive() returned: " + action);
-//            Log.d(TAG, "onReceive() DataString: " + bleUUID);
+        if (BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED.equals(action) && bluetoothDeviceList != null) {
+            if (bluetoothDeviceList.isEmpty()) {
+                bluetoothConnectionListener.onBluetoothDisconnect();
+                Toast.makeText(context, "Device Disconnected", Toast.LENGTH_LONG).show();
+                return;
+            }
 
+            BluetoothDevice device = bluetoothDeviceList.get(0);
+            int connectionState = bluetoothA2dp.getConnectionState(device);
 
+            if (connectionState == BluetoothA2dp.STATE_CONNECTED) {
+                Toast.makeText(context, "Device Connected", Toast.LENGTH_LONG).show();
+                bluetoothConnectionListener.onBluetoothConnect();
+            }
         }
-
-        if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)){
-
-//            Log.d(TAG, "onReceive() returned: " + action);
-
-
-        }
-
     }
 }
