@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothDisconne
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int PERMISSIONS_REQUEST_FINE_LOCATION = 1;
+    public static final int HOURS_24 = 60000 * 60 * 24;
 
     private GeoDataClient geoDataClient;
     private PlaceDetectionClient placesDetectionClient;
@@ -66,31 +67,12 @@ public class MainActivity extends AppCompatActivity implements BluetoothDisconne
 
         // Then set the JacksonParserFactory like below
         AndroidNetworking.setParserFactory(new JacksonParserFactory());
-        //RESTful API
 
         Button button = findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                AndroidNetworking.post("http://hackathon.intrepidcs.com/api/data")
-                        .addHeaders("Authorization", "Bearer c367b9df3ed900f462b2fc8dea1b73c26d5bd798d0fd732019133f8cb9ee7671")
-                        .addBodyParameter("command", "trunk")
-                        .setTag("trunk_test")
-                        .setPriority(Priority.MEDIUM)
-                        .build()
-                        .getAsJSONObject(new JSONObjectRequestListener() {
-                            @Override
-                            public void onResponse(JSONObject response) {
-                                // do anything with response
-                                Log.d("Trunk_test", "response " + response);
-                            }
-
-                            @Override
-                            public void onError(ANError error) {
-                                // handle error
-                                Log.d("Trunk_test", "response_error " + error.getErrorBody());
-                            }
-                        });
+                openTrunk();
             }
         });
         requestLocationPermissions();
@@ -99,6 +81,29 @@ public class MainActivity extends AppCompatActivity implements BluetoothDisconne
 
         createGeofence();
         addGeofences();
+    }
+
+    private void openTrunk() {
+        //RESTful API
+        AndroidNetworking.post("http://hackathon.intrepidcs.com/api/data")
+                .addHeaders("Authorization", "Bearer c367b9df3ed900f462b2fc8dea1b73c26d5bd798d0fd732019133f8cb9ee7671")
+                .addBodyParameter("command", "trunk")
+                .setTag("trunk_test")
+                .setPriority(Priority.MEDIUM)
+                .build()
+                .getAsJSONObject(new JSONObjectRequestListener() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // do anything with response
+                        Log.d("Trunk_test", "response " + response);
+                    }
+
+                    @Override
+                    public void onError(ANError error) {
+                        // handle error
+                        Log.d("Trunk_test", "response_error " + error.getErrorBody());
+                    }
+                });
     }
 
     private void requestLocationPermissions() {
@@ -171,9 +176,9 @@ public class MainActivity extends AppCompatActivity implements BluetoothDisconne
                 .setCircularRegion(
                         coordinates.latitude,
                         coordinates.longitude,
-                        10
+                        5
                 )
-                .setExpirationDuration(60000 * 60 * 24)
+                .setExpirationDuration(HOURS_24)
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
                 .build()
         );
@@ -217,9 +222,26 @@ public class MainActivity extends AppCompatActivity implements BluetoothDisconne
                             }
                         });
             } catch (SecurityException e){
-
+                e.printStackTrace();
             }
         }
+    }
+
+    private void removeGeofences() {
+        geofencingClient.removeGeofences(getGeofencePendingIntent())
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        // Geofences have been removed
+                    }
+                })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Failed to add Geofences
+                    }
+                });
+
     }
 
 }
