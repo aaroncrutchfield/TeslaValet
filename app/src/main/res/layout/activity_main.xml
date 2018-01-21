@@ -1,109 +1,231 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
     xmlns:app="http://schemas.android.com/apk/res-auto"
+
     xmlns:tools="http://schemas.android.com/tools"
+
     android:layout_width="match_parent"
+
     android:layout_height="match_parent"
+
+    android:background="@android:color/background_light"
     tools:context="com.example.ioutd.teslavalet.MainActivity">
 
+
     <Button
+
         android:id="@+id/button"
+
         android:layout_width="wrap_content"
+
         android:layout_height="wrap_content"
+
         android:layout_marginEnd="8dp"
+
         android:layout_marginStart="8dp"
+
         android:layout_marginTop="8dp"
+
         android:text="@string/demo_button"
+
         app:layout_constraintEnd_toEndOf="parent"
+
         app:layout_constraintStart_toStartOf="parent"
+
         app:layout_constraintTop_toTopOf="parent" />
+
 
     <fragment
+
         android:id="@+id/map"
+
         android:name="com.google.android.gms.maps.MapFragment"
+
         android:layout_width="0dp"
+
         android:layout_height="0dp"
+
         android:layout_marginBottom="16dp"
+
         android:layout_marginEnd="16dp"
+
         android:layout_marginStart="16dp"
+
         android:layout_marginTop="16dp"
+
         app:layout_constraintBottom_toTopOf="@+id/textView"
+
         app:layout_constraintEnd_toEndOf="parent"
+
         app:layout_constraintStart_toStartOf="parent"
+
         app:layout_constraintTop_toBottomOf="@+id/button" />
 
+
     <TextView
+
         android:id="@+id/textView"
+
         android:layout_width="wrap_content"
+
         android:layout_height="wrap_content"
+
         android:layout_marginBottom="8dp"
+
         android:layout_marginEnd="8dp"
+
         android:layout_marginStart="8dp"
+
         android:layout_marginTop="8dp"
+
         android:text="@string/preferences_header"
+
         android:textColor="@android:color/black"
+
         android:textSize="18sp"
+
         app:layout_constraintBottom_toBottomOf="parent"
+
         app:layout_constraintEnd_toEndOf="parent"
+
         app:layout_constraintStart_toStartOf="parent"
+
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Switch
-        android:id="@+id/trunkSwitch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="4dp"
-        android:layout_marginTop="16dp"
-        android:text="@string/trunk"
-        app:layout_constraintEnd_toEndOf="@+id/textView"
-        app:layout_constraintTop_toBottomOf="@+id/frunkSwitch"
-        android:layout_marginRight="4dp" />
 
     <Switch
-        android:id="@+id/driverSwitch"
+
+        android:id="@+id/trunkSwitch"
+
         android:layout_width="wrap_content"
+
         android:layout_height="wrap_content"
+
+        android:layout_marginEnd="4dp"
+
         android:layout_marginTop="16dp"
+        android:layout_marginTop="12dp"
+
+        android:thumbTint="@android:color/black"
+        android:track="@android:color/background_light"
+        android:trackTint="@android:color/background_light"
+
+        app:layout_constraintEnd_toEndOf="@+id/textView"
+
+        app:layout_constraintTop_toBottomOf="@+id/frunkSwitch" />
+
+
+    <Switch
+
+        android:id="@+id/driverSwitch"
+
+        android:layout_width="wrap_content"
+
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="16dp"
+
         android:text="@string/driver"
+        android:layout_marginTop="12dp"
+
+        android:thumbTint="@android:color/black"
+        android:track="@android:color/background_light"
+        android:trackTint="@android:color/background_light"
         app:layout_constraintEnd_toEndOf="@+id/textView"
         app:layout_constraintTop_toBottomOf="@+id/trunkSwitch" />
 
+
     <Switch
+
         android:id="@+id/passengerSwitch"
+
         android:layout_width="wrap_content"
+
         android:layout_height="wrap_content"
+
         android:layout_marginTop="16dp"
+
         android:text="@string/passanger"
+        android:layout_marginTop="12dp"
+
+        android:thumbTint="@android:color/black"
+        android:track="@android:color/background_light"
+        android:trackTint="@android:color/background_light"
         app:layout_constraintEnd_toEndOf="@+id/textView"
+
         app:layout_constraintTop_toBottomOf="@+id/driverSwitch" />
 
+
     <Switch
+
         android:id="@+id/leftSwitch"
+
         android:layout_width="wrap_content"
+
         android:layout_height="wrap_content"
+
         android:layout_marginTop="16dp"
+
         android:text="@string/back_left"
+
+        android:layout_marginTop="12dp"
+
+        android:thumbTint="@android:color/black"
+        android:track="@android:color/background_light"
+        android:trackTint="@android:color/background_light"
+
         app:layout_constraintEnd_toEndOf="@+id/textView"
+
         app:layout_constraintTop_toBottomOf="@+id/passengerSwitch" />
 
-    <Switch
-        android:id="@+id/rightSwitch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/back_right"
-        app:layout_constraintEnd_toEndOf="@+id/textView"
-        app:layout_constraintTop_toBottomOf="@+id/leftSwitch" />
 
     <Switch
+
+        android:id="@+id/rightSwitch"
+
+        android:layout_width="wrap_content"
+
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="16dp"
+
+        android:text="@string/back_right"
+        android:layout_marginTop="12dp"
+
+        android:thumbTint="@android:color/black"
+        android:track="@android:color/background_light"
+        android:trackTint="@android:color/background_light"
+
+        app:layout_constraintEnd_toEndOf="@+id/textView"
+
+        app:layout_constraintTop_toBottomOf="@+id/leftSwitch" />
+
+
+    <Switch
+
         android:id="@+id/frunkSwitch"
+
+        android:layout_width="wrap_content"
+
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="12dp"
+
+        android:thumbTint="@android:color/black"
+        android:track="@android:color/background_light"
+        android:trackTint="@android:color/background_light"
+        app:layout_constraintTop_toBottomOf="@+id/textView"
+        tools:layout_editor_absoluteX="526dp" />
+
+    <TextView
+        android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="4dp"
-        android:layout_marginTop="16dp"
-        android:text="@string/frunk"
-        app:layout_constraintEnd_toEndOf="@+id/textView"
-        app:layout_constraintTop_toBottomOf="@+id/textView"
-        android:layout_marginRight="4dp" />
+        android:text="Open the Frunk (Font Trunk)"
+        tools:layout_editor_absoluteX="123dp"
+        tools:layout_editor_absoluteY="305dp" />
+
 
 </android.support.constraint.ConstraintLayout>
