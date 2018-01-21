@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Set;
 
@@ -55,7 +56,14 @@ public class BluetoothBroadcastReceiver extends BroadcastReceiver {
                     Log.d(TAG, "onServiceConnected: bluetooth=" + bluetoothProfile);
                     bluetoothA2dp = (BluetoothA2dp) bluetoothProfile;
                     bluetoothDeviceList = bluetoothProfile.getConnectedDevices();
+
+                    BluetoothA2dp a2dpService = (BluetoothA2dp)bluetoothProfile;
+
+                    List<BluetoothDevice> bluetoothDeviceList = a2dpService.getConnectedDevices();
+
+                    Log.d(TAG, "onServiceConnected: List= " + bluetoothDeviceList);
                 }
+
 
             }
 
@@ -69,13 +77,13 @@ public class BluetoothBroadcastReceiver extends BroadcastReceiver {
 
         bluetoothAdapter.getProfileProxy(context, serviceListener, BluetoothProfile.A2DP);
 
-//        List<BluetoothDevice> bluetoothDeviceList = bluetoothA2dp.getConnectedDevices();
-
         if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)){
+
+            String bleUUID = intent.getStringExtra(BluetoothDevice.EXTRA_NAME);
+
             Toast.makeText(context, "Device Connected", Toast.LENGTH_LONG).show();
             Log.d(TAG, "onReceive() returned: " + action);
-//            BluetoothDevice device = bluetoothDeviceList.get(0);
-//            Log.d(TAG, "onReceive: devices= " + device.getName());
+            Log.d(TAG, "onReceive() DataString: " + bleUUID);
 
             // TODO: 1/20/2018 check if the device is the tesla, if so, save the mac address
         }
@@ -83,10 +91,7 @@ public class BluetoothBroadcastReceiver extends BroadcastReceiver {
         if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)){
             Toast.makeText(context, "Device Disconnected", Toast.LENGTH_LONG).show();
             Log.d(TAG, "onReceive() returned: " + action);
-//            BluetoothDevice device = bluetoothDeviceList.get(0);
-//            BluetoothDevice device = bluetoothDeviceList.get(0);
-//            Log.d(TAG, "onReceive: devices= " + device.getName());
-//            Log.d(TAG, "onReceive: devices= " + device.getName());
+
             // TODO: 1/20/2018 if the mac address matches the tesla, get the current GPS location
             bluetoothDisconnectionListener.onBluetoothDisconnect();
 
