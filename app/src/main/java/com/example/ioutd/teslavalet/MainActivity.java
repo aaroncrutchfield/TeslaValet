@@ -1,5 +1,6 @@
 package com.example.ioutd.teslavalet;
 
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothDevice;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -15,6 +16,7 @@ import android.util.Log;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.location.places.PlaceDetectionClient;
@@ -24,7 +26,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
 
-public class MainActivity extends AppCompatActivity implements
+public class MainActivity extends AppCompatActivity implements BluetoothDisconnectionListener,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -50,11 +52,10 @@ public class MainActivity extends AppCompatActivity implements
         setupBroadcastReceiver();
 
         requestLocationPermissions();
-        getCurrentLocation();
     }
 
     private void setupBroadcastReceiver() {
-        BluetoothBroadcastReceiver receiver = new BluetoothBroadcastReceiver();
+        BluetoothBroadcastReceiver receiver = new BluetoothBroadcastReceiver(this);
         IntentFilter filter = new IntentFilter();
 
         filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
@@ -98,7 +99,6 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         Log.d(TAG, "onRequestPermissionsResult: was called");
@@ -130,5 +130,10 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Log.e(TAG, "API Client Connection Failed!");
+    }
+
+    @Override
+    public void onBluetoothDisconnect() {
+        getCurrentLocation();
     }
 }
