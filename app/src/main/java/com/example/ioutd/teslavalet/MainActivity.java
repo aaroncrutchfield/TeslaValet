@@ -6,12 +6,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -32,6 +33,7 @@ import com.google.android.gms.location.places.PlaceDetectionClient;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -42,26 +44,24 @@ import com.jacksonandroidnetworking.JacksonParserFactory;
 
 import org.json.JSONObject;
 
-import java.util.List;
 
+public class MainActivity extends AppCompatActivity implements BluetoothConnectionListener,
+        OnMapReadyCallback {
 
-public class MainActivity extends FragmentActivity implements BluetoothConnectionListener,
-        OnMapReadyCallback{
+    static final String TAG = MainActivity.class.getSimpleName();
+    static final int PERMISSIONS_REQUEST_FINE_LOCATION = 1;
+    static final int HOURS_24 = 60000 * 60 * 24;
 
-    private static final String TAG = MainActivity.class.getSimpleName();
-    private static final int PERMISSIONS_REQUEST_FINE_LOCATION = 1;
-    public static final int HOURS_24 = 60000 * 60 * 24;
+    GeoDataClient geoDataClient;
+    PlaceDetectionClient placesDetectionClient;
+    boolean mLocationPermissionGranted;
+    LatLng coordinates;
 
-    private GeoDataClient geoDataClient;
-    private PlaceDetectionClient placesDetectionClient;
-    private FusedLocationProviderClient fusedLocationProviderClient;
-    private boolean mLocationPermissionGranted;
-    private LatLng coordinates;
-
-    private List geofenceList;
-    private GeofencingClient geofencingClient;
-    private PendingIntent geofencePendingIntent;
-    private int radius = 5;
+    Geofence geofence;
+    GeofencingClient geofencingClient;
+    PendingIntent geofencePendingIntent;
+    int radius = 5;
+    GoogleMap googleMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +84,17 @@ public class MainActivity extends FragmentActivity implements BluetoothConnectio
 
         createBroadcastReceiver();
 
+        configSharedPreferences();
+
+        getCurrentLocation();
+
+        // Add the map fragment
+        MapFragment mapFragment = (MapFragment) getFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+    }
+
+    private void configSharedPreferences() {
         Switch trunk = findViewById(R.id.trunkSwitch);
         trunk.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -138,11 +149,6 @@ public class MainActivity extends FragmentActivity implements BluetoothConnectio
         passenger.setChecked(getSharedPreferences(getString(R.string.passenger_pref), Context.MODE_PRIVATE).getBoolean(getString(R.string.passenger_pref), false));
         left.setChecked(getSharedPreferences(getString(R.string.left_pref), Context.MODE_PRIVATE).getBoolean(getString(R.string.left_pref), false));
         right.setChecked(getSharedPreferences(getString(R.string.right_pref), Context.MODE_PRIVATE).getBoolean(getString(R.string.right_pref), false));
-
-        // Add the map fragment
-        MapFragment mapFragment = (MapFragment) getFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
     }
 
     public void openDoors() {
@@ -241,18 +247,34 @@ public class MainActivity extends FragmentActivity implements BluetoothConnectio
     }
 
     private void getCurrentLocation() {
+        Log.d(TAG, "getCurrentLocation: was called");
         if (mLocationPermissionGranted) {
             try {
+                FusedLocationProviderClient fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
                 Task locationResult = fusedLocationProviderClient.getLastLocation();
-                locationResult.addOnCompleteListener(new OnCompleteListener() {
+                Log.d(TAG, "getCurrentLocation: locationResult= " + locationResult);
+                locationResult.addOnCompleteListener(this, new OnCompleteListener() {
                     @Override
                     public void onComplete(@NonNull Task task) {
+                        Log.d(TAG, "onComplete: task= " + task);
                         if (task.isSuccessful()) {
                             Location lastKnownLocation = (Location) task.getResult();
 
                             coordinates = new LatLng(lastKnownLocation.getLatitude(),
                                     lastKnownLocation.getLongitude());
-                            Log.d(TAG, "getCurrentLocation: " + coordinates.toString());
+
+                            Log.d(TAG, "onComplete: location= " + coordinates);
+
+                            // TODO: 1/21/2018 find out why circle for geofence isn't filled in
+                            googleMap.addCircle(new CircleOptions()
+                                    .center(coordinates)
+                                    .strokeColor(Color.CYAN));
+                            googleMap.addMarker(new MarkerOptions()
+                                    .position(coordinates)
+                                    .title("Parking Location"));
+
+                            createGeofence();
+
                         }
                     }
 
@@ -277,21 +299,24 @@ public class MainActivity extends FragmentActivity implements BluetoothConnectio
 
     @Override
     public void onBluetoothDisconnect() {
+        Log.d(TAG, "onBluetoothDisconnect: was called");
         getCurrentLocation();
-        createGeofence();
-        addGeofences();
     }
 
     @Override
     public void onBluetoothConnect() {
-        removeGeofences();
+        Log.d(TAG, "onBluetoothConnect: was called");
+        if (geofencingClient != null) {
+            removeGeofences();
+        }
     }
 
     // Use the builder to create a geofence
     public void createGeofence() {
+        Log.d(TAG, "createGeofence: was called");
         geofencingClient = LocationServices.getGeofencingClient(this);
 
-        geofenceList.add(new Geofence.Builder()
+        geofence = new Geofence.Builder()
                 .setRequestId("parkingSpot")
                 .setCircularRegion(
                         coordinates.latitude,
@@ -300,15 +325,17 @@ public class MainActivity extends FragmentActivity implements BluetoothConnectio
                 )
                 .setExpirationDuration(HOURS_24)
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
-                .build()
-        );
+                .build();
+
+        addGeofences();
     }
 
     // Specify the geofences to monitor and set the triggers
     private GeofencingRequest getGeofencingRequest() {
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
         builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_DWELL);
-        builder.addGeofences(geofenceList);
+        builder.addGeofence(geofence);
+        Log.d(TAG, "getGeofencingRequest: " + geofence.toString());
         return builder.build();
     }
 
@@ -326,6 +353,7 @@ public class MainActivity extends FragmentActivity implements BluetoothConnectio
     }
 
     private void addGeofences() {
+        Log.d(TAG, "addGeofences: was called");
         if (mLocationPermissionGranted) {
             try {
                 geofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent())
@@ -366,8 +394,7 @@ public class MainActivity extends FragmentActivity implements BluetoothConnectio
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        googleMap.addMarker(new MarkerOptions()
-                .position(coordinates)
-                .title("Parking Location"));
+        this.googleMap = googleMap;
+
     }
 }

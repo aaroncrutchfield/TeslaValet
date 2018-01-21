@@ -24,6 +24,7 @@ public class BluetoothBroadcastReceiver extends BroadcastReceiver {
     private List<BluetoothDevice> bluetoothDeviceList;
 
     BluetoothConnectionListener bluetoothConnectionListener;
+    static boolean connected = false;
 
     public BluetoothBroadcastReceiver(){}
 
@@ -32,7 +33,7 @@ public class BluetoothBroadcastReceiver extends BroadcastReceiver {
     }
 
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive(final Context context, Intent intent) {
         String action = intent.getAction();
         final BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter == null) {
@@ -61,44 +62,46 @@ public class BluetoothBroadcastReceiver extends BroadcastReceiver {
                     List<BluetoothDevice> bluetoothDeviceList = a2dpService.getConnectedDevices();
 
                     Log.d(TAG, "onServiceConnected: List= " + bluetoothDeviceList);
+
+                    Toast.makeText(context, "Device Connected", Toast.LENGTH_LONG).show();
+                    bluetoothConnectionListener.onBluetoothConnect();
                 }
 
 
             }
+
 
             @Override
             public void onServiceDisconnected(int i) {
                 if (i == BluetoothProfile.A2DP) {
                     bluetoothA2dp = null;
+
+                    bluetoothConnectionListener.onBluetoothDisconnect();
+                    Toast.makeText(context, "Device Disconnected", Toast.LENGTH_LONG).show();
                 }
             }
         };
 
+
         bluetoothAdapter.getProfileProxy(context, serviceListener, BluetoothProfile.A2DP);
 
         if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)){
+//
+//            String bleUUID = intent.getStringExtra(BluetoothDevice.EXTRA_NAME);
+//
+//            Toast.makeText(context, "Device Connected", Toast.LENGTH_LONG).show();
+//            bluetoothConnectionListener.onBluetoothConnect();
+//            Log.d(TAG, "onReceive() returned: " + action);
+//            Log.d(TAG, "onReceive() DataString: " + bleUUID);
 
-            String bleUUID = intent.getStringExtra(BluetoothDevice.EXTRA_NAME);
 
-            Toast.makeText(context, "Device Connected", Toast.LENGTH_LONG).show();
-            Log.d(TAG, "onReceive() returned: " + action);
-            Log.d(TAG, "onReceive() DataString: " + bleUUID);
-
-            bluetoothConnectionListener.onBluetoothConnect();
-
-            // TODO: 1/20/2018 check if the device is the tesla, if so, save the mac address
         }
 
         if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)){
-            Toast.makeText(context, "Device Disconnected", Toast.LENGTH_LONG).show();
-            Log.d(TAG, "onReceive() returned: " + action);
 
-            // TODO: 1/20/2018 if the mac address matches the tesla, get the current GPS location
-            bluetoothConnectionListener.onBluetoothDisconnect();
+//            Log.d(TAG, "onReceive() returned: " + action);
 
-            // TODO: 1/20/2018 use the GPS location to set the Geofence
-            // TODO: 1/20/2018 if the Geofence is entered, check if the current location is a grocery store
-            // TODO: 1/20/2018 if the location is a grocery store, open the trunk, else, open the door
+
         }
 
     }
