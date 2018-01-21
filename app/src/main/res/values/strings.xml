@@ -1,5 +1,21 @@
 <resources>
     <string name="app_name">TeslaValet</string>
-    <string name="preferences_header">Preferences</string>
-    <string name="trunk">Trunk</string>
+    <string name="preferences_header">Auto Open</string>
+
+    <string name="demo_button">Open</string>
+
+    <string name="frunk">Frunk </string>
+    <string name="trunk">Trunk </string>
+    <string name="driver">Driver </string>
+    <string name="passanger">Passanger </string>
+    <string name="back_left">Back Left </string>
+    <string name="back_right">Back Right </string>
+
+    <string name="driver_pref">driver_pref</string>
+    <string name="passenger_pref">pass_pref</string>
+    <string name="left_pref">left_pref</string>
+    <string name="right_pref">right_pref</string>
+    <string name="trunk_pref">trunk_pref</string>
+    <string name="frunk_pref">frunk_pref</string>
+
 </resources>
