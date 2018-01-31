@@ -15,9 +15,10 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.Switch;
+import android.widget.Toast;
 
 import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.common.Priority;
@@ -73,11 +74,11 @@ public class MainActivity extends AppCompatActivity implements BluetoothConnecti
         // Then set the JacksonParserFactory like below
         AndroidNetworking.setParserFactory(new JacksonParserFactory());
 
-        Button button = findViewById(R.id.button);
+        ImageView button = findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                openDoors();
+                openTrunk();
             }
         });
         requestLocationPermissions();
@@ -396,5 +397,28 @@ public class MainActivity extends AppCompatActivity implements BluetoothConnecti
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
 
+    }
+
+    public void openTrunk() {
+        AndroidNetworking.post("http://hackathon.intrepidcs.com/api/data")
+                .addHeaders("Authorization", "Bearer c367b9df3ed900f462b2fc8dea1b73c26d5bd798d0fd732019133f8cb9ee7671")
+                .addBodyParameter("command", "trunk")
+                .setTag("trunk_test")
+                .setPriority(Priority.MEDIUM)
+                .build()
+                .getAsJSONObject(new JSONObjectRequestListener() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // do anything with response
+                        Log.d("Trunk_test", "response " + response);
+                    }
+
+                    @Override
+                    public void onError(ANError error) {
+                        // handle error
+                        Log.d("Trunk_test", "response_error " + error.getErrorBody());
+                    }
+                });
+        Toast.makeText(this, "Open Trunk", Toast.LENGTH_LONG).show();
     }
 }
