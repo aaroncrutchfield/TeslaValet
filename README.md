@@ -1,5 +1,3 @@
-# Tesla Valet
-
 ### Description
 Tesla Valet was created at the MSU SpartaHack IV in January 2018. The team consisted of [myself](https://www.linkedin.com/in/aaron-crutchfield/), [Smriti Wadhwa](https://www.linkedin.com/in/smriti-wadhwa/), and our mentor [Rod Mastria](https://www.linkedin.com/in/rodmesquita/). Our app won the ["Best Hack For Tesla" award](https://www.linkedin.com/feed/update/urn:li:activity:6361014852781170688).
 
